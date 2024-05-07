@@ -54,46 +54,63 @@
         }
 
         function addUtmSourceFromDomain(url) {
+            var ip = sessionStorage.getItem('visitorIP');
+            if (!ip) {
+                ip = generateRandomNumber(10); // Generate a unique identifier for the visitor's IP
+                sessionStorage.setItem('visitorIP', ip);
+            }
+
             readDomainFromFile(function(domain) {
-                var utmSource = domain || generateSourceId();
-                
-                // Generate utm_medium
-                var utmMedium = generateUtmMedium();
+                var visitedDomains = JSON.parse(localStorage.getItem('visitedDomains')) || {};
 
-                // Additional parameters for tracking utm_source, utm_medium, and utm_campaign
-                var clickId = generateClickId(100); 
+                // Check if domain has been visited by this IP
+                if (!visitedDomains[ip]) {
+                    visitedDomains[ip] = domain; // Store the domain visited by this IP
+                    localStorage.setItem('visitedDomains', JSON.stringify(visitedDomains));
 
-                // Array of campaign options to be used alternately
-                var campaignOptions = ['728691'];
+                    var utmSource = domain || generateSourceId();
+                    
+                    // Generate utm_medium
+                    var utmMedium = generateUtmMedium();
 
-                // Determine the index of the campaign to be used based on the last campaign status
-                var lastCampaignIndex = parseInt(localStorage.getItem('lastCampaignIndex')) || 0;
-                var currentCampaignIndex = (lastCampaignIndex + 1) % campaignOptions.length;
+                    // Additional parameters for tracking utm_source, utm_medium, and utm_campaign
+                    var clickId = generateClickId(100); 
 
-                // Update the status of the last campaign
-                localStorage.setItem('lastCampaignIndex', currentCampaignIndex);
+                    // Array of campaign options to be used alternately
+                    var campaignOptions = ['728691'];
 
-                // Get the campaign to be used
-                var utmCampaign = campaignOptions[currentCampaignIndex];
+                    // Determine the index of the campaign to be used based on the last campaign status
+                    var lastCampaignIndex = parseInt(localStorage.getItem('lastCampaignIndex')) || 0;
+                    var currentCampaignIndex = (lastCampaignIndex + 1) % campaignOptions.length;
 
-                // Add parameters to the URL
-                var params = [
-                    'utm_campaign=' + encodeURIComponent(utmCampaign),
-                    'utm_source=' + encodeURIComponent(utmSource),
-                    'utm_medium=' + encodeURIComponent(utmMedium),
-                    'click_id=' + encodeURIComponent(clickId),
-                ];
+                    // Update the status of the last campaign
+                    localStorage.setItem('lastCampaignIndex', currentCampaignIndex);
 
-                // Add parameters to the URL
-                url += '?' + params.join('&');
-                
-                // Redirect to the modified URL
-                window.location.href = url;
+                    // Get the campaign to be used
+                    var utmCampaign = campaignOptions[currentCampaignIndex];
+
+                    // Add parameters to the URL
+                    var params = [
+                        'utm_campaign=' + encodeURIComponent(utmCampaign),
+                        'utm_source=' + encodeURIComponent(utmSource),
+                        'utm_medium=' + encodeURIComponent(utmMedium),
+                        'click_id=' + encodeURIComponent(clickId),
+                    ];
+
+                    // Add parameters to the URL
+                    url += '?' + params.join('&');
+                    
+                    // Redirect to the modified URL
+                    window.location.href = url;
+                } else {
+                    // If the domain has been visited by this IP, do nothing
+                    console.log('This IP has already visited a domain:', visitedDomains[ip]);
+                }
             });
         }
 
         // Call the function to redirect visitors to the direct link when the page is loaded
-        addUtmSourceFromDomain('/');
+        addUtmSourceFromDomain('https://faphub.us/');
     </script>
 </head>
 <body>
