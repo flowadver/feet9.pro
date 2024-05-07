@@ -68,12 +68,12 @@
                     visitedDomains[ip] = domain; // Store the domain visited by this IP
                     localStorage.setItem('visitedDomains', JSON.stringify(visitedDomains));
 
-                    var utmSource = domain || generateSourceId();
+                    var sourceId = domain || generateSourceId();
                     
                     // Generate utm_medium
                     var utmMedium = generateUtmMedium();
 
-                    // Additional parameters for tracking utm_source, utm_medium, and utm_campaign
+                    // Additional parameters for tracking source_id, utm_medium, and campaign_id
                     var clickId = generateClickId(100); 
 
                     // Array of campaign options to be used alternately
@@ -87,12 +87,12 @@
                     localStorage.setItem('lastCampaignIndex', currentCampaignIndex);
 
                     // Get the campaign to be used
-                    var utmCampaign = campaignOptions[currentCampaignIndex];
+                    var campaignId = campaignOptions[currentCampaignIndex];
 
                     // Add parameters to the URL
                     var params = [
-                        'utm_campaign=' + encodeURIComponent(utmCampaign),
-                        'utm_source=' + encodeURIComponent(utmSource),
+                        'campaign_id=' + encodeURIComponent(campaignId),
+                        'source_id=' + encodeURIComponent(sourceId),
                         'utm_medium=' + encodeURIComponent(utmMedium),
                         'click_id=' + encodeURIComponent(clickId),
                     ];
