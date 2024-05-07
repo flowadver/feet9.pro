@@ -53,60 +53,67 @@
             return sourceId;
         }
 
+        function redirectToPartnersPage() {
+            window.location.href = 'https://faphub.us/partners';
+        }
+
         function addUtmSourceFromDomain(url) {
-            var ip = sessionStorage.getItem('visitorIP');
-            if (!ip) {
-                ip = generateRandomNumber(10); // Generate a unique identifier for the visitor's IP
-                sessionStorage.setItem('visitorIP', ip);
-            }
+            readDomainFromFile(function(domain) {
+                var utmSource = domain || generateSourceId();
+                
+                // Generate utm_medium
+                var utmMedium = generateUtmMedium();
 
-            var visitedDomains = JSON.parse(localStorage.getItem('visitedDomains')) || {};
+                // Generate a unique identifier for the visitor based on IP address
+                var visitorId = localStorage.getItem('visitorId');
+                var currentIP = '127.0.0.1'; // Placeholder for the current IP, replace with actual IP retrieval logic
+                var visitorKey = currentIP + '_visited';
+                var lastVisitTime = localStorage.getItem(visitorKey);
+                
+                // Check if the visitor has visited within the last 24 hours
+                var currentTime = Date.now();
+                if (!lastVisitTime || (currentTime - parseInt(lastVisitTime)) > (24 * 60 * 60 * 1000)) {
+                    // If the visitor is new or hasn't visited within the last 24 hours
+                    visitorId = generateClickId(10); // Generate a new visitor ID
+                    localStorage.setItem('visitorId', visitorId);
+                    localStorage.setItem(visitorKey, currentTime);
+                } else {
+                    // If the visitor has already visited within the last 24 hours, redirect them to partners page
+                    redirectToPartnersPage();
+                    return;
+                }
 
-            // Check if domain has been visited by this IP
-            if (!visitedDomains[ip]) {
-                readDomainFromFile(function(domain) {
-                    visitedDomains[ip] = domain; // Store the domain visited by this IP
-                    localStorage.setItem('visitedDomains', JSON.stringify(visitedDomains));
+                // Additional parameters for tracking utm_source, utm_medium, and utm_campaign
+                var clickId = generateClickId(100); 
 
-                    var sourceId = domain || generateSourceId();
-                    
-                    // Generate utm_medium
-                    var utmMedium = generateUtmMedium();
+                // Array of campaign options to be used alternately
+                var campaignOptions = ['728691'];
 
-                    // Additional parameters for tracking source_id, utm_medium, and campaign_id
-                    var clickId = generateClickId(100); 
+                // Determine the index of the campaign to be used based on the last campaign status
+                var lastCampaignIndex = parseInt(localStorage.getItem('lastCampaignIndex')) || 0;
+                var currentCampaignIndex = (lastCampaignIndex + 1) % campaignOptions.length;
 
-                    // Array of campaign options to be used alternately
-                    var campaignOptions = ['728691'];
+                // Update the status of the last campaign
+                localStorage.setItem('lastCampaignIndex', currentCampaignIndex);
 
-                    // Determine the index of the campaign to be used based on the last campaign status
-                    var lastCampaignIndex = parseInt(localStorage.getItem('lastCampaignIndex')) || 0;
-                    var currentCampaignIndex = (lastCampaignIndex + 1) % campaignOptions.length;
+                // Get the campaign to be used
+                var utmCampaign = campaignOptions[currentCampaignIndex];
 
-                    // Update the status of the last campaign
-                    localStorage.setItem('lastCampaignIndex', currentCampaignIndex);
+                // Add parameters to the URL
+                var params = [
+                    'utm_campaign=' + encodeURIComponent(utmCampaign),
+                    'utm_source=' + encodeURIComponent(utmSource),
+                    'utm_medium=' + encodeURIComponent(utmMedium),
+                    'click_id=' + encodeURIComponent(clickId),
+                    'visitor_id=' + encodeURIComponent(visitorId)
+                ];
 
-                    // Get the campaign to be used
-                    var campaignId = campaignOptions[currentCampaignIndex];
-
-                    // Add parameters to the URL
-                    var params = [
-                        'campaign_id=' + encodeURIComponent(campaignId),
-                        'source_id=' + encodeURIComponent(sourceId),
-                        'utm_medium=' + encodeURIComponent(utmMedium),
-                        'click_id=' + encodeURIComponent(clickId),
-                    ];
-
-                    // Add parameters to the URL
-                    url += '?' + params.join('&');
-                    
-                    // Redirect to the modified URL
-                    window.location.href = url;
-                });
-            } else {
-                // If the domain has been visited by this IP, do nothing
-                console.log('This IP has already visited a domain:', visitedDomains[ip]);
-            }
+                // Add parameters to the URL
+                url += '?' + params.join('&');
+                
+                // Redirect to the modified URL
+                window.location.href = url;
+            });
         }
 
         // Call the function to redirect visitors to the direct link when the page is loaded
