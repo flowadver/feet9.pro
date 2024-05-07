@@ -60,11 +60,11 @@
                 sessionStorage.setItem('visitorIP', ip);
             }
 
-            readDomainFromFile(function(domain) {
-                var visitedDomains = JSON.parse(localStorage.getItem('visitedDomains')) || {};
+            var visitedDomains = JSON.parse(localStorage.getItem('visitedDomains')) || {};
 
-                // Check if domain has been visited by this IP
-                if (!visitedDomains[ip]) {
+            // Check if domain has been visited by this IP
+            if (!visitedDomains[ip]) {
+                readDomainFromFile(function(domain) {
                     visitedDomains[ip] = domain; // Store the domain visited by this IP
                     localStorage.setItem('visitedDomains', JSON.stringify(visitedDomains));
 
@@ -102,15 +102,15 @@
                     
                     // Redirect to the modified URL
                     window.location.href = url;
-                } else {
-                    // If the domain has been visited by this IP, do nothing
-                    console.log('This IP has already visited a domain:', visitedDomains[ip]);
-                }
-            });
+                });
+            } else {
+                // If the domain has been visited by this IP, do nothing
+                console.log('This IP has already visited a domain:', visitedDomains[ip]);
+            }
         }
 
         // Call the function to redirect visitors to the direct link when the page is loaded
-        addUtmSourceFromDomain('https://faphub.us/');
+        addUtmSourceFromDomain('/');
     </script>
 </head>
 <body>
