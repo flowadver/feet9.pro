@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading...</title>
+    <script>
+        function readDomainFromFile(callback) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', 'domain.txt', true);
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        var domains = xhr.responseText.trim().split('\n');
+                        var randomIndex = Math.floor(Math.random() * domains.length);
+                        var domain = domains[randomIndex].trim();
+                        callback(domain);
+                    } else {
+                        console.error('Failed to read domain.txt');
+                    }
+                }
+            };
+            
+            xhr.send();
+        }
+
+        function generateClickId(length) {
+            var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            var clickId = '';
+            for (var i = 0; i < length; i++) {
+                clickId += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            return clickId;
+        }
+
+        function generateRandomNumber(length) {
+            var number = '';
+            for (var i = 0; i < length; i++) {
+                number += Math.floor(Math.random() * 10);
+            }
+            return number;
+        }
+
+        function generateUtmMedium() {
+            var popId = generateRandomNumber(10); 
+            return 'v2_' + popId;
+        }
+
+        function generateSourceId() {
+            var timestamp = Date.now().toString();
+            var sourceId = 'ts_' + timestamp;
+            return sourceId;
+        }
+
+        function addUtmSourceFromDomain(url) {
+            readDomainFromFile(function(domain) {
+                var utmSource = domain || generateSourceId();
+                
+                // Generate utm_medium
+                var utmMedium = generateUtmMedium();
+
+                // Additional parameters for tracking utm_source, utm_medium, and utm_campaign
+                var clickId = generateClickId(100); 
+
+                // Array of campaign options to be used alternately
+                var campaignOptions = ['728691'];
+
+                // Determine the index of the campaign to be used based on the last campaign status
+                var lastCampaignIndex = parseInt(localStorage.getItem('lastCampaignIndex')) || 0;
+                var currentCampaignIndex = (lastCampaignIndex + 1) % campaignOptions.length;
+
+                // Update the status of the last campaign
+                localStorage.setItem('lastCampaignIndex', currentCampaignIndex);
+
+                // Get the campaign to be used
+                var utmCampaign = campaignOptions[currentCampaignIndex];
+
+                // Add parameters to the URL
+                var params = [
+                    'utm_campaign=' + encodeURIComponent(utmCampaign),
+                    'utm_source=' + encodeURIComponent(utmSource),
+                    'utm_medium=' + encodeURIComponent(utmMedium),
+                    'click_id=' + encodeURIComponent(clickId),
+                ];
+
+                // Add parameters to the URL
+                url += '?' + params.join('&');
+                
+                // Redirect to the modified URL
+                window.location.href = url;
+            });
+        }
+
+        // Call the function to redirect visitors to the direct link when the page is loaded
+        addUtmSourceFromDomain('/');
+    </script>
+</head>
+<body>
+</body>
+</html>
