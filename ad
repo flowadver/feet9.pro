@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <!-- <link href="https://vjs.zencdn.net/7.15.4/video-js.css" rel="stylesheet" /> -->
+  <meta name='asg_verification' content='LZfPgFYVVudYWvyhDV7yz2ti'>
+  <style>
+    .overlay {
+      position: fixed;
+      top: 0;
+      right: 0;
+      left: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.3);
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-self: center;
+      display: none;
+
+    }
+
+    .contain {
+      width: 100%;
+      height: 500px;
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-self: center;
+    }
+
+    .show {
+      display: flex;
+    }
+
+    #myvideo {
+      display: block;
+      margin: 0 auto;
+      width: 500px;
+      height: 500px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Video Ads</h1>
+  <button onclick="createAds();">Show Video Ads</button>
+  <div id="modal" class="overlay">
+    <div class="contain">
+      <video id="myvideo">
+      </video>
+    </div>
+  </div>
+
+  <!-- <script src="https://vjs.zencdn.net/7.15.4/video.min.js"></script> -->
+  <!-- Ads Managed by AdSpyglass.com -->
+  <script id="adspyglass" type="text/javascript" src="//cdn.tapioni.com/vast-im.js"></script>
+
+
+  <script>
+
+
+    // function loadJs(src) {
+    //   let removeEle = document.querySelector('#adspyglass')
+    //   removeEle && document.body.removeChild(removeEle);
+    //   var script = document.createElement('script');
+    //   script.src = src + "?&time=" + Date.now();
+    //   script.setAttribute('type', 'text/javascript');
+    //   console.log("script", script);
+    //   document.body.appendChild(script);
+    // }
+    // let spots = ["350953", "350949", "350944", "350942", "350941", "350554",  "350810"];
+    let spots = ["350810"];
+    function createAds() {
+      document.getElementById('modal').classList.add('show');
+      console.log("RUN")
+      let spot = spots.pop();
+      console.log(spot);
+      spots.unshift(spot);
+      window.__initAsg({
+        autoplay: true,
+        spotUrl: "//a.shukriya90.com/api/spots/" + spot,
+        attachTo: '#myvideo',
+        skipoffset: 15000,
+        verbosity: -1,
+        onAdReady: function() {
+          document.getElementById('modal').classList.add('show');
+        },
+        onAdFinish: function () {
+          
+          fetch('https://fakestoreapi.com/products/1')
+            .then(res=>res.json())
+            .then(json=> {
+              console.log("You add 1 point");
+            })
+          console.log("after finish");
+          document.getElementById('modal').classList.remove('show');
+        },
+        // subid1: '11810',
+        width: {
+          desktop: 800,
+        },
+        height: {
+          desktop: 800,
+        }
+      });
+
+    }
+
+  </script>
+
+</body>
+
+</html>
