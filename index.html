@@ -5,19 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Loading...</title>
     <script>
-        function readDomainFromFile(callback) {
+        function readFile(filename, callback) {
             var xhr = new XMLHttpRequest();
-            xhr.open('GET', 'domain.txt', true);
+            xhr.open('GET', filename, true);
             
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === XMLHttpRequest.DONE) {
                     if (xhr.status === 200) {
-                        var domains = xhr.responseText.trim().split('\n');
-                        var randomIndex = Math.floor(Math.random() * domains.length);
-                        var domain = domains[randomIndex].trim();
-                        callback(domain);
+                        var lines = xhr.responseText.trim().split('\n');
+                        var randomIndex = Math.floor(Math.random() * lines.length);
+                        var value = lines[randomIndex].trim();
+                        callback(value);
                     } else {
-                        console.error('Failed to read domain.txt');
+                        console.error('Failed to read ' + filename);
                     }
                 }
             };
@@ -47,47 +47,44 @@
             return 'v2_' + popId;
         }
 
-        function generateSourceId() {
-            var timestamp = Date.now().toString();
-            return 'ts_' + timestamp;
-        }
-
         function addUtmSourceFromDomain(url) {
-            readDomainFromFile(function(domain) {
-                var sourceId = domain || generateSourceId();
-                var utmMedium = generateUtmMedium();
+            readFile('domain.txt', function(domain) {
+                readFile('source.txt', function(sourceId) {
+                    sourceId = sourceId || 'ts_' + Date.now().toString(); // Use source from file or timestamp as fallback
+                    var utmMedium = generateUtmMedium();
 
-                var visitorId = localStorage.getItem('visitorId');
-                var currentIP = '127.0.0.1'; // Placeholder for actual IP retrieval logic
-                var visitorKey = currentIP + '_visited';
-                var lastVisitTime = localStorage.getItem(visitorKey);
+                    var visitorId = localStorage.getItem('visitorId');
+                    var currentIP = '127.0.0.1'; // Placeholder for actual IP retrieval logic
+                    var visitorKey = currentIP + '_visited';
+                    var lastVisitTime = localStorage.getItem(visitorKey);
 
-                var currentTime = Date.now();
-                if (!lastVisitTime || (currentTime - parseInt(lastVisitTime)) > (24 * 60 * 60 * 1000)) {
-                    visitorId = generateClickId(10);
-                    localStorage.setItem('visitorId', visitorId);
-                    localStorage.setItem(visitorKey, currentTime);
-                } else {
-                    redirectToPartnersPage();
-                    return;
-                }
+                    var currentTime = Date.now();
+                    if (!lastVisitTime || (currentTime - parseInt(lastVisitTime)) > (24 * 60 * 60 * 1000)) {
+                        visitorId = generateClickId(10);
+                        localStorage.setItem('visitorId', visitorId);
+                        localStorage.setItem(visitorKey, currentTime);
+                    } else {
+                        redirectToPartnersPage();
+                        return;
+                    }
 
-                var clickId = generateClickId(100); 
-                var campaignOptions = ['785684'];
-                var lastCampaignIndex = parseInt(localStorage.getItem('lastCampaignIndex')) || 0;
-                var currentCampaignIndex = (lastCampaignIndex + 1) % campaignOptions.length;
-                localStorage.setItem('lastCampaignIndex', currentCampaignIndex);
-                var utmCampaign = campaignOptions[currentCampaignIndex];
+                    var clickId = generateClickId(100); 
+                    var campaignOptions = ['785684'];
+                    var lastCampaignIndex = parseInt(localStorage.getItem('lastCampaignIndex')) || 0;
+                    var currentCampaignIndex = (lastCampaignIndex + 1) % campaignOptions.length;
+                    localStorage.setItem('lastCampaignIndex', currentCampaignIndex);
+                    var utmCampaign = campaignOptions[currentCampaignIndex];
 
-                var params = [
-                    'utm_campaign=' + encodeURIComponent(utmCampaign),
-                    'source_id=' + encodeURIComponent(sourceId),
-                    'utm_medium=' + encodeURIComponent(utmMedium),
-                    'click_id=' + encodeURIComponent(clickId),
-                ];
+                    var params = [
+                        'utm_campaign=' + encodeURIComponent(utmCampaign),
+                        'source_id=' + encodeURIComponent(sourceId),
+                        'utm_medium=' + encodeURIComponent(utmMedium),
+                        'click_id=' + encodeURIComponent(clickId),
+                    ];
 
-                url += '?' + params.join('&');
-                window.location.href = url;
+                    url += '?' + params.join('&');
+                    window.location.href = url;
+                });
             });
         }
 
