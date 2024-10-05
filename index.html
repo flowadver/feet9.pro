@@ -5,19 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Loading...</title>
     <script>
-        function readFile(filename, callback) {
+        function readSourceIdFromFile(callback) {
             var xhr = new XMLHttpRequest();
-            xhr.open('GET', filename, true);
+            xhr.open('GET', 'source.txt', true);
             
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === XMLHttpRequest.DONE) {
                     if (xhr.status === 200) {
-                        var lines = xhr.responseText.trim().split('\n');
-                        var randomIndex = Math.floor(Math.random() * lines.length);
-                        var value = lines[randomIndex].trim();
-                        callback(value);
+                        var sourceIds = xhr.responseText.trim().split('\n');
+                        var randomIndex = Math.floor(Math.random() * sourceIds.length);
+                        var sourceId = sourceIds[randomIndex].trim();
+                        callback(sourceId);
                     } else {
-                        console.error('Failed to read ' + filename);
+                        console.error('Failed to read source.txt');
                     }
                 }
             };
@@ -47,44 +47,27 @@
             return 'v2_' + popId;
         }
 
-        function addUtmSourceFromDomain(url) {
-            readFile('domain.txt', function(domain) {
-                readFile('source.txt', function(sourceId) {
-                    sourceId = sourceId || 'ts_' + Date.now().toString(); // Use source from file or timestamp as fallback
-                    var utmMedium = generateUtmMedium();
+        function addUtmSource(url) {
+            readSourceIdFromFile(function(sourceId) {
+                sourceId = sourceId || 'ts_' + Date.now().toString(); // Fallback ke timestamp jika sourceId tidak ditemukan
+                var utmMedium = generateUtmMedium();
 
-                    var visitorId = localStorage.getItem('visitorId');
-                    var currentIP = '127.0.0.1'; // Placeholder for actual IP retrieval logic
-                    var visitorKey = currentIP + '_visited';
-                    var lastVisitTime = localStorage.getItem(visitorKey);
+                var clickId = generateClickId(100); 
+                var campaignOptions = ['785684'];
+                var lastCampaignIndex = parseInt(localStorage.getItem('lastCampaignIndex')) || 0;
+                var currentCampaignIndex = (lastCampaignIndex + 1) % campaignOptions.length;
+                localStorage.setItem('lastCampaignIndex', currentCampaignIndex);
+                var utmCampaign = campaignOptions[currentCampaignIndex];
 
-                    var currentTime = Date.now();
-                    if (!lastVisitTime || (currentTime - parseInt(lastVisitTime)) > (24 * 60 * 60 * 1000)) {
-                        visitorId = generateClickId(10);
-                        localStorage.setItem('visitorId', visitorId);
-                        localStorage.setItem(visitorKey, currentTime);
-                    } else {
-                        redirectToPartnersPage();
-                        return;
-                    }
+                var params = [
+                    'utm_campaign=' + encodeURIComponent(utmCampaign),
+                    'source_id=' + encodeURIComponent(sourceId),
+                    'utm_medium=' + encodeURIComponent(utmMedium),
+                    'click_id=' + encodeURIComponent(clickId),
+                ];
 
-                    var clickId = generateClickId(100); 
-                    var campaignOptions = ['785684'];
-                    var lastCampaignIndex = parseInt(localStorage.getItem('lastCampaignIndex')) || 0;
-                    var currentCampaignIndex = (lastCampaignIndex + 1) % campaignOptions.length;
-                    localStorage.setItem('lastCampaignIndex', currentCampaignIndex);
-                    var utmCampaign = campaignOptions[currentCampaignIndex];
-
-                    var params = [
-                        'utm_campaign=' + encodeURIComponent(utmCampaign),
-                        'source_id=' + encodeURIComponent(sourceId),
-                        'utm_medium=' + encodeURIComponent(utmMedium),
-                        'click_id=' + encodeURIComponent(clickId),
-                    ];
-
-                    url += '?' + params.join('&');
-                    window.location.href = url;
-                });
+                url += '?' + params.join('&');
+                window.location.href = url;
             });
         }
 
@@ -95,7 +78,7 @@
 
             for (var i = 0; i < links.length; i++) {
                 (function(link) {
-                    addUtmSourceFromDomain(link);
+                    addUtmSource(link);
                 })(links[i]);
             }
         }
