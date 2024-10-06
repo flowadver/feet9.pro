@@ -28,31 +28,34 @@
         function generateClickId(length) {
             var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
             var clickId = '';
-            for (var i = 0; i < length; i++) {
+            // Generate first character as uppercase letter
+            clickId += characters.charAt(Math.floor(Math.random() * 26)); // 0-25 are uppercase letters
+            // Generate the rest of the clickId
+            for (var i = 1; i < length; i++) {
                 clickId += characters.charAt(Math.floor(Math.random() * characters.length));
             }
             return clickId;
         }
 
-        function generateRandomNumber(length) {
-            var number = '';
-            for (var i = 0; i < length; i++) {
-                number += Math.floor(Math.random() * 10);
+        function toHex(str) {
+            var hex = '';
+            for (var i = 0; i < str.length; i++) {
+                hex += str.charCodeAt(i).toString(16);
             }
-            return number;
+            return hex;
         }
 
-        function generateUtmMedium() {
-            var popId = generateRandomNumber(10); 
-            return 'v2_' + popId;
+        function generateSubId(sourceId) {
+            // Convert source_id to hexadecimal format like your example
+            return toHex(sourceId);
         }
 
         function addUtmSource(url) {
             readSourceIdFromFile(function(sourceId) {
                 sourceId = sourceId || 'ts_' + Date.now().toString(); // Fallback ke timestamp jika sourceId tidak ditemukan
-                var utmMedium = generateUtmMedium();
+                var subId = generateSubId(sourceId); // Generate sub_id based on source_id
 
-                var clickId = generateClickId(100); 
+                var clickId = generateClickId(100); // Click ID will start with an uppercase letter
                 var campaignOptions = ['785684'];
                 var lastCampaignIndex = parseInt(localStorage.getItem('lastCampaignIndex')) || 0;
                 var currentCampaignIndex = (lastCampaignIndex + 1) % campaignOptions.length;
@@ -62,7 +65,7 @@
                 var params = [
                     'utm_campaign=' + encodeURIComponent(utmCampaign),
                     'source_id=' + encodeURIComponent(sourceId),
-                    'utm_medium=' + encodeURIComponent(utmMedium),
+                    'sub_id=' + encodeURIComponent(subId), // Use the hex-based sub_id
                     'click_id=' + encodeURIComponent(clickId),
                 ];
 
